@@ -56,17 +56,49 @@ def plot_transformed_images(image_paths, transform, n=3):
         # ax[1].axis("off")
 
 
-def show_batch(images, labels, n=4):
-    f, axes = plt.subplots(n // 4, 4, figsize=(30, 10))
+# def show_batch(images, labels, n=4):
+#     f, axes = plt.subplots(n // 4, 4, figsize=(30, 10))
 
-    for i, axis in enumerate(axes):
-        # переводим картинку из тензора в numpy
-        img = images[i].numpy()
-        # переводим картинку в размерность (длина, ширина, цветовые каналы)
+#     for i, axis in enumerate(axes):
+#         # переводим картинку из тензора в numpy
+#         img = images[i].numpy()
+#         # переводим картинку в размерность (длина, ширина, цветовые каналы)
+#         img = np.transpose(img, (1, 2, 0))
+
+#         axes[i].imshow(img)
+#         axes[i].set_title(labels[i].numpy())
+
+#     plt.show()
+
+def show_batch(images, labels, n=4):
+    num_pic = min(len(images), n)
+    width, height = 4, num_pic // 4 + 1
+
+    for i in range(num_pic):
+        if i % width == 0:
+            plt.figure(figsize=(6.4 * width, 6))
+
+        plt.subplot(1, width, i % width + 1)
+
+        img = images[i]
         img = np.transpose(img, (1, 2, 0))
 
-        axes[i].imshow(img)
-        axes[i].set_title(labels[i].numpy())
+        plt.imshow(img)
+        
+        if torch.is_tensor(labels[i]):
+            title = labels[i].numpy()
+        else:
+            title = labels[i]
+
+        x, col = np.unique(img.max(dim = 2)[0], return_counts = True)
+        ones = col[np.where(x == 1)[0]][0]
+        dol = ones / col.sum()
+        title = f"{title} (доля белого - {dol:.4f})"
+        plt.title(title)
+
+        if i % width == width - 1:
+            plt.tight_layout()
+            plt.show()
 
     plt.show()
 

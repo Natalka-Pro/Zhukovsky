@@ -28,13 +28,21 @@ class My_Dataset(Dataset):
             while len(self.X) < self.required_len:
                 image = Image.open(self.image_paths[i % self.real_len])
                 i += 1
-                transformed_image = self.transform(image)
 
-                x, col = np.unique(transformed_image.max(dim = 0)[0], return_counts = True)
-                ones = col[np.where(x == 1)[0]][0]
-                dol = ones / col.sum() # доля белого
-                if dol < threshold:
-                    self.X.append((transformed_image, self.kind))
+                dol = 1
+                k = 0
+                while dol >= threshold:
+                    transformed_image = self.transform(image)
+
+                    x, col = np.unique(transformed_image.max(dim = 0)[0], return_counts = True)
+                    ones = col[np.where(x == 1)[0]][0]
+                    dol = ones / col.sum() # доля белого
+                    k += 1
+                    if k > 100:
+                        print(f"Доля белого больше у {i} картинки!!!")
+                        break
+
+                self.X.append((transformed_image, self.kind))
 
     def __len__(self):
         return self.required_len
