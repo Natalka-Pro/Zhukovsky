@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import confusion_matrix as conf_matrix
 import seaborn as sns
+from .train import get_predictions
 
 
 def open_image(image):
@@ -55,7 +56,7 @@ def plot_transformed_images(image_paths, transform, n=3):
         # ax[1].axis("off")
 
 
-def show_images(images, labels, n=4):
+def show_batch(images, labels, n=4):
     f, axes = plt.subplots(n // 4, 4, figsize=(30, 10))
 
     for i, axis in enumerate(axes):
@@ -68,6 +69,73 @@ def show_images(images, labels, n=4):
         axes[i].set_title(labels[i].numpy())
 
     plt.show()
+
+
+def show_images(images, labels, n = 4):
+    # f, axes= plt.subplots(n//4, 4, figsize=(30,10))
+
+    num_pic = min(len(images), n)
+    width, height = 4, num_pic // 4 + 1
+
+    # plt.figure(figsize=(6.4 * width, 6))
+
+    for i in range(num_pic):
+
+        if i % width == 0:
+            plt.figure(figsize=(6.4 * width, 6))
+
+        # plt.subplot(height, width, i + 1)
+        plt.subplot(1, width, i % width + 1)
+
+        img = images[i]
+        img = np.transpose(img, (1, 2, 0))
+
+        plt.imshow(img)
+        if torch.is_tensor(labels[i]):
+            title = labels[i].numpy()
+        else:
+            title = labels[i]
+
+        x, col = np.unique(img.max(dim = 2)[0], return_counts = True)
+        ones = col[np.where(x == 1)[0]][0]
+        dol = ones / col.sum()
+        title = f"{title:.6} (доля белого - {dol:.4})"
+        plt.title(title)
+
+        if i % width == width - 1:
+            plt.tight_layout()
+            plt.show()
+
+    plt.show()
+
+
+def show_result(model, loader, threshold, greater = True, col = 8, seed = 42, sort = False):
+    seed_everything(seed)
+
+    # loader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE,
+    #                                        shuffle=False)
+
+    y_pred, y_true, y_prob, X = get_predictions(model, loader)
+
+    if sort:
+        s, indices = torch.sort(y_prob, descending=True)
+        y_pred = y_pred[indices]
+        y_prob = y_prob[indices]
+        X = X[indices]
+
+    if greater:
+        idx = np.where(y_prob > threshold)[0]
+    else:
+        idx = np.where(y_prob < threshold)[0]
+
+
+    sign = ">" if greater else "<"
+    print(f"prob {sign} {threshold}\ncount : {len(idx)} out of {len(X)}")
+    idx = idx[:col]
+    print(f"pic idx : {list(idx)}")
+    show_images(X[idx], y_prob[idx], n = col)
+
+    return y_pred, y_true, y_prob, X
 
 
 def confusion_matrix(y_true, y_pred):

@@ -46,8 +46,8 @@ def train(
 
         model.train(True)
 
-        running_losses = []
-        running_accuracies = []
+        # running_losses = []
+        # running_accuracies = []
         for i, batch in enumerate(train_loader):
             # получаем текущий батч
             X_batch, y_batch = batch
@@ -57,16 +57,16 @@ def train(
 
             # вычисление лосса от выданных сетью ответов и правильных ответов на батч
             loss = loss_fn(logits, y_batch.to(device))
-            running_losses.append(loss.item())
+            # running_losses.append(loss.item())
 
             loss.backward()  # backpropagation (вычисление градиентов)
             optimizer.step()  # обновление весов сети
             optimizer.zero_grad()  # обнуляем веса
 
             # вычислим accuracy на текущем train батче
-            model_answers = torch.argmax(logits, dim=1)
-            train_accuracy = torch.sum(y_batch == model_answers.cpu()) / len(y_batch)
-            running_accuracies.append(train_accuracy)
+            # model_answers = torch.argmax(logits, dim=1)
+            # train_accuracy = torch.sum(y_batch == model_answers.cpu()) / len(y_batch)
+            # running_accuracies.append(train_accuracy)
 
             # Логирование результатов
             # if (i + 1) % 50 == 0:
@@ -80,15 +80,17 @@ def train(
         # после каждой эпохи получаем метрику качества на валидационной выборке
         model.train(False)
 
+        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn=loss_fn)
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn=loss_fn)
         print(
-            "# Эпоха {}/{}: val лосс и accuracy:".format(
-                epoch + 1,
-                n_epoch,
-            ),
+            "# Эпоха {}/{} train/val: loss {:6.5}/{:6.5}, accuracy: {:6.5}/{:6.5}".format(
+            epoch + 1,
+            n_epoch,
+            train_loss,
             val_loss,
+            train_accuracy,
             val_accuracy,
-            end="\n",
+            ),
         )
 
     return model
