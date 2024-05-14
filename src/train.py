@@ -42,7 +42,7 @@ def train(
     # цикл обучения сети
     for epoch in range(n_epoch):
 
-        print("Epoch:", epoch + 1)
+        print("# Epoch:", epoch + 1)
 
         model.train(True)
 
@@ -69,20 +69,20 @@ def train(
             running_accuracies.append(train_accuracy)
 
             # Логирование результатов
-            if (i + 1) % 50 == 0:
-                print(
-                    "Средние train лосс и accuracy на последних 50 итерациях:",
-                    np.mean(running_losses),
-                    np.mean(running_accuracies),
-                    end="\n",
-                )
+            # if (i + 1) % 50 == 0:
+            #     print(
+            #         "Средние train лосс и accuracy на последних 50 итерациях:",
+            #         np.mean(running_losses),
+            #         np.mean(running_accuracies),
+            #         end="\n",
+            #     )
 
         # после каждой эпохи получаем метрику качества на валидационной выборке
         model.train(False)
 
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn=loss_fn)
         print(
-            "Эпоха {}/{}: val лосс и accuracy:".format(
+            "# Эпоха {}/{}: val лосс и accuracy:".format(
                 epoch + 1,
                 n_epoch,
             ),
