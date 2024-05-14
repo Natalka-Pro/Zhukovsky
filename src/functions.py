@@ -55,19 +55,19 @@ def plot_transformed_images(image_paths, transform, n=3):
         # ax[1].axis("off")
 
 
-def show_images(images, labels, n=4):
-    f, axes = plt.subplots(n // 4, 4, figsize=(30, 10))
+# def show_images(images, labels, n=4):
+#     f, axes = plt.subplots(n // 4, 4, figsize=(30, 10))
 
-    for i, axis in enumerate(axes):
-        # переводим картинку из тензора в numpy
-        img = images[i].numpy()
-        # переводим картинку в размерность (длина, ширина, цветовые каналы)
-        img = np.transpose(img, (1, 2, 0))
+#     for i, axis in enumerate(axes):
+#         # переводим картинку из тензора в numpy
+#         img = images[i].numpy()
+#         # переводим картинку в размерность (длина, ширина, цветовые каналы)
+#         img = np.transpose(img, (1, 2, 0))
 
-        axes[i].imshow(img)
-        axes[i].set_title(labels[i].numpy())
+#         axes[i].imshow(img)
+#         axes[i].set_title(labels[i].numpy())
 
-    plt.show()
+#     plt.show()
 
 
 def confusion_matrix(y_true, y_pred):
