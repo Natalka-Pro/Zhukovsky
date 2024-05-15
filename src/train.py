@@ -1,10 +1,15 @@
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def get_predictions(model, dataloader, device=DEVICE):
+def get_predictions(model, dataset, globals=None):
+    BATCH_SIZE = globals["BATCH_SIZE"]
+    DEVICE = globals["DEVICE"]
+
+    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False)
+
     model.eval()
     pred_labels = []
     prob_labels = []
@@ -19,7 +24,7 @@ def get_predictions(model, dataloader, device=DEVICE):
         X.append(X_batch)
 
         with torch.no_grad():
-            logits = model(X_batch.to(device))
+            logits = model(X_batch.to(DEVICE))
             y_pred = torch.argmax(logits, dim=1)
             y_prob = torch.softmax(logits, dim=1)[:, 1]
 
@@ -35,15 +40,12 @@ def get_predictions(model, dataloader, device=DEVICE):
     return pred_labels.cpu(), true_labels, prob_labels.cpu(), X
 
 
-def train(
-    model, train_loader, val_loader, loss_fn, optimizer, n_epoch=3, device=DEVICE
-):
+def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=None):
+    DEVICE = globals["DEVICE"]
 
     # цикл обучения сети
     for epoch in range(n_epoch):
-
-        print("# Epoch:", epoch + 1)
-
+        
         model.train(True)
 
         # running_losses = []
@@ -53,10 +55,10 @@ def train(
             X_batch, y_batch = batch
 
             # forward pass (получение ответов на батч картинок)
-            logits = model(X_batch.to(device))
+            logits = model(X_batch.to(DEVICE))
 
             # вычисление лосса от выданных сетью ответов и правильных ответов на батч
-            loss = loss_fn(logits, y_batch.to(device))
+            loss = loss_fn(logits, y_batch.to(DEVICE))
             # running_losses.append(loss.item())
 
             loss.backward()  # backpropagation (вычисление градиентов)
@@ -83,7 +85,7 @@ def train(
         train_accuracy, train_loss = evaluate(model, train_loader, loss_fn=loss_fn)
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn=loss_fn)
         print(
-            "# Эпоха {}/{} train/val: loss {:6.5f}/{:6.5f}, accuracy: {:6.5f}/{:6.5f}".format(
+            "# Epoch {}/{} train/val: loss {:6.5f}/{:6.5f}, accuracy: {:6.5f}/{:6.5f}".format(
             epoch + 1,
             n_epoch,
             train_loss,
@@ -96,7 +98,8 @@ def train(
     return model
 
 
-def evaluate(model, dataloader, loss_fn, device=DEVICE):
+def evaluate(model, dataloader, loss_fn, globals=None):
+    DEVICE = globals["DEVICE"]
 
     losses = []
 
@@ -112,10 +115,10 @@ def evaluate(model, dataloader, loss_fn, device=DEVICE):
         # эта строка запрещает вычисление градиентов
         with torch.no_grad():
             # получаем ответы сети на картинки батча
-            logits = model(X_batch.to(device))
+            logits = model(X_batch.to(DEVICE))
 
             # вычисляем лосс на текущем батче
-            loss = loss_fn(logits, y_batch.to(device))
+            loss = loss_fn(logits, y_batch.to(DEVICE))
             losses.append(loss.item())
 
             # вычисляем ответы сети как номера классов для каждой картинки
