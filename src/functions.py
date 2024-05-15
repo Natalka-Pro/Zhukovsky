@@ -94,6 +94,7 @@ def show_batch(images, labels, n=4):
         ones = col[np.where(x == 1)[0]][0]
         dol = ones / col.sum()
         title = f"{title} (доля белого - {dol:.4f})"
+        
         plt.title(title)
 
         if i % width == width - 1:

@@ -83,7 +83,7 @@ def train(
         train_accuracy, train_loss = evaluate(model, train_loader, loss_fn=loss_fn)
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn=loss_fn)
         print(
-            "# Эпоха {}/{} train/val: loss {:6.5}/{:6.5}, accuracy: {:6.5}/{:6.5}".format(
+            "# Эпоха {}/{} train/val: loss {:6.5f}/{:6.5f}, accuracy: {:6.5f}/{:6.5f}".format(
             epoch + 1,
             n_epoch,
             train_loss,
