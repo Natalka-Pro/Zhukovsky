@@ -82,8 +82,8 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=
         # после каждой эпохи получаем метрику качества на валидационной выборке
         model.train(False)
 
-        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn=loss_fn)
-        val_accuracy, val_loss = evaluate(model, val_loader, loss_fn=loss_fn)
+        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, globals=globals)
+        val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, globals=globals)
         print(
             "# Epoch {}/{} train/val: loss {:6.5f}/{:6.5f}, accuracy: {:6.5f}/{:6.5f}".format(
             epoch + 1,
