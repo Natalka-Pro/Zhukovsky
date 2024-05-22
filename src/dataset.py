@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 import os
 from PIL import Image
 import numpy as np
-import torch
+import random
 from .functions import seed_everything
 
 
@@ -62,32 +62,43 @@ class My_Dataset(Dataset):
             raise IndexError
 
 
-def pos_neg(dataloader):
-    num_pos = num_neg = num = 0
+class TripletDataset(Dataset):
+    def __init__(self, dataset1, dataset2, required_len, deterministic=True, seed=42):
+        self.d1 = dataset1
+        self.d2 = dataset2
+        self.len1 = len(dataset1)
+        self.len2 = len(dataset2)
+        self.required_len = required_len
+        self.deterministic = deterministic
 
-    for batch in dataloader:
-        images, labels = batch
+        if self.deterministic:
+            seed_everything(seed)
+            self.X = []
 
-        col = images.size(0)
-        pos = labels.sum()
+            for i in range(self.required_len):
+                anchor, positive = random.sample(range(self.len1), 2)
+                negative = random.randrange(self.len2)
 
-        num += col
-        num_pos += pos
-        num_neg += col - pos
+                ds = [self.d1, self.d1, self.d2]
+                idxs = [anchor, positive, negative]
+                self.X.append(tuple(dataset[i][0] for dataset, i in zip(ds, idxs)))
 
-    return {"1": num_pos.item(), "0": num_neg.item(), "total": num}
+    def __len__(self):
+        return self.required_len
 
+    def __getitem__(self, idx):
+        if idx < len(self):
 
-def split_dataset(dataset, percent=0.8):
-    # в тренировочную выборку отнесем 80% всех картинок
-    train_size = int(len(dataset) * percent)
-    # в валидационную — остальные 20%
-    val_size = len(dataset) - train_size
+            if self.deterministic:
+                return self.X[idx]
+            else:
+                anchor, positive = random.sample(range(self.len1), 2)
+                negative = random.randrange(self.len2)
 
-    train_dataset, test_dataset = torch.utils.data.random_split(
-                        dataset, [train_size, val_size])
+                ds = [self.d1, self.d1, self.d2]
+                idxs = [anchor, positive, negative]
+                return tuple(dataset[i][0] for dataset, i in zip(ds, idxs))
+        else:
+            raise IndexError
+        
 
-    len_tr, len_test = len(train_dataset), len(test_dataset)
-    print(f"Train: {len_tr}\n Test: {len_test}\n Total: {len_tr + len_test}")
-    
-    return train_dataset, test_dataset

@@ -1,47 +1,12 @@
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-
-
-
-def get_predictions(model, dataset, globals=None):
-    BATCH_SIZE = globals["BATCH_SIZE"]
-    DEVICE = globals["DEVICE"]
-
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False)
-
-    model.eval()
-    pred_labels = []
-    prob_labels = []
-    true_labels = []
-    X = []
-
-    for i, batch in enumerate(dataloader):
-
-        # так получаем текущий батч
-        X_batch, y_batch = batch
-        true_labels.append(y_batch)
-        X.append(X_batch)
-
-        with torch.no_grad():
-            logits = model(X_batch.to(DEVICE))
-            y_pred = torch.argmax(logits, dim=1)
-            y_prob = torch.softmax(logits, dim=1)[:, 1]
-
-            pred_labels.append(y_pred)
-            prob_labels.append(y_prob)
-
-    pred_labels = torch.cat(pred_labels)
-    prob_labels = torch.cat(prob_labels)
-    true_labels = torch.cat(true_labels)
-    X = torch.cat(X)
-
-    # print("pred_labels, true_labels, prob_labels, X")
-    return pred_labels.cpu(), true_labels, prob_labels.cpu(), X
 
 
 def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=None):
     DEVICE = globals["DEVICE"]
+
+    log = f"# Epoch {{:{len(str(n_epoch))}}}/{n_epoch} "
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.4f}}%/{{:6.4f}}%"
 
     # цикл обучения сети
     for epoch in range(n_epoch):
@@ -85,15 +50,11 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=
         train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, globals=globals)
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, globals=globals)
         print(
-            "# Epoch {}/{} train/val: loss {:6.5f}/{:6.5f}, accuracy: {:6.5f}/{:6.5f}".format(
-            epoch + 1,
-            n_epoch,
-            train_loss,
-            val_loss,
-            train_accuracy,
-            val_accuracy,
-            ),
-        )
+            log.format(epoch + 1,
+                       train_loss, 
+                       val_loss,
+                       train_accuracy * 100,
+                       val_accuracy * 100))
 
     return model
 
