@@ -2,13 +2,11 @@ import numpy as np
 import torch
 
 
-def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=None):
-    DEVICE = globals["DEVICE"]
-
+def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, device):
     log = f"# Epoch {{:{len(str(n_epoch))}}}/{n_epoch} "
-    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.4f}}%/{{:6.4f}}%"
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.3f}}%/{{:6.3f}}%"
 
-    # цикл обучения сети
+    print("train: started")
     for epoch in range(n_epoch):
         
         model.train(True)
@@ -20,10 +18,10 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=
             X_batch, y_batch = batch
 
             # forward pass (получение ответов на батч картинок)
-            logits = model(X_batch.to(DEVICE))
+            logits = model(X_batch.to(device))
 
             # вычисление лосса от выданных сетью ответов и правильных ответов на батч
-            loss = loss_fn(logits, y_batch.to(DEVICE))
+            loss = loss_fn(logits, y_batch.to(device))
             # running_losses.append(loss.item())
 
             loss.backward()  # backpropagation (вычисление градиентов)
@@ -47,8 +45,8 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=
         # после каждой эпохи получаем метрику качества на валидационной выборке
         model.train(False)
 
-        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, globals=globals)
-        val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, globals=globals)
+        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, device)
+        val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, device)
         print(
             log.format(epoch + 1,
                        train_loss, 
@@ -59,9 +57,7 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=
     return model
 
 
-def evaluate(model, dataloader, loss_fn, globals=None):
-    DEVICE = globals["DEVICE"]
-
+def evaluate(model, dataloader, loss_fn, device):
     losses = []
 
     num_correct = 0
@@ -76,10 +72,10 @@ def evaluate(model, dataloader, loss_fn, globals=None):
         # эта строка запрещает вычисление градиентов
         with torch.no_grad():
             # получаем ответы сети на картинки батча
-            logits = model(X_batch.to(DEVICE))
+            logits = model(X_batch.to(device))
 
             # вычисляем лосс на текущем батче
-            loss = loss_fn(logits, y_batch.to(DEVICE))
+            loss = loss_fn(logits, y_batch.to(device))
             losses.append(loss.item())
 
             # вычисляем ответы сети как номера классов для каждой картинки

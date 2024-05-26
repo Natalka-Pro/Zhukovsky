@@ -85,10 +85,10 @@ def show_images(images, labels, n = 4):
     plt.show()
 
 
-def show_result(model, dataset, threshold, greater = True, col = 8, seed = 42, sort = False, 
-                globals=None):
+def show_result(model, dataset, threshold, batch_size, device, 
+                greater = True, col = 8, seed = 42, sort = False):
     
-    y_pred, y_true, y_prob, X = get_predictions(model, dataset, globals=globals)
+    y_pred, y_true, y_prob, X = get_predictions(model, dataset, batch_size, device)
 
     if sort:
         _, indices = torch.sort(y_prob, descending=True)

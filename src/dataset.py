@@ -8,9 +8,8 @@ from .functions import seed_everything
 
 class My_Dataset(Dataset):
     def __init__(
-        self, kind, images_dir, augmentation, transform, deterministic=True, globals=None):
-        THRESHOLD = globals["THRESHOLD"]
-        SEED = globals["SEED"]
+        self, kind, images_dir, augmentation, transform, 
+        threshold, seed, deterministic=True):
 
         self.kind = 1 if kind == "pos" else 0
         self.augmentation = augmentation
@@ -24,7 +23,7 @@ class My_Dataset(Dataset):
         self.required_len = self.augmentation * self.real_len
 
         if self.deterministic:
-            seed_everything(SEED)
+            seed_everything(seed)
             self.X = []
 
             i = 0
@@ -34,7 +33,7 @@ class My_Dataset(Dataset):
 
                 dol = 1
                 k = 0
-                while dol >= THRESHOLD:
+                while dol >= threshold:
                     transformed_image = self.transform(image)
 
                     x, col = np.unique(transformed_image.max(dim = 0)[0], return_counts = True)
@@ -102,3 +101,19 @@ class TripletDataset(Dataset):
             raise IndexError
         
 
+class Emb_Dataset(Dataset):
+    def __init__(self, model, dataset, device):
+        self.dataset = dataset
+        self.model = model
+        self.device = device
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        if idx < len(self):
+            img, cls = self.dataset[idx]
+            emb = self.model(img[None, :].to(self.device))[0]
+            return emb, cls
+        else:
+            raise IndexError

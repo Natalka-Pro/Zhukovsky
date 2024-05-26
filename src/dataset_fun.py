@@ -27,6 +27,6 @@ def split_dataset(dataset, percent=0.8):
                         dataset, [train_size, val_size])
 
     len_tr, len_test = len(train_dataset), len(test_dataset)
-    print(f"Train: {len_tr}\n Test: {len_test}\n Total: {len_tr + len_test}")
+    print(f"split_dataset:\nTrain: {len_tr}\nTest: {len_test}\nTotal: {len_tr + len_test}")
     
     return train_dataset, test_dataset

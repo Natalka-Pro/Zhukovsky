@@ -3,4 +3,5 @@ data
 *.zip
 .ipynb_checkpoints
 Untitled Document
-
+bin
+__pycache__

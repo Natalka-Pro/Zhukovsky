@@ -2,17 +2,17 @@ import torch
 # https://habr.com/ru/articles/794750/
 
 
-def train_siam(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, globals=None):
-    DEVICE = globals["DEVICE"]
+def train_siam(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, device):
 
     log = f"# Epoch {{:{len(str(n_epoch))}}}/{n_epoch} "
-    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.4f}}%/{{:6.4f}}%"
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.3f}}%/{{:6.3f}}%"
 
+    print("train_siam: started")
     for epoch in range(n_epoch):
-        train_epoch(model, train_loader, loss_fn, optimizer, DEVICE)
+        train_epoch(model, train_loader, loss_fn, optimizer, device)
 
-        train_loss, train_accuracy = validate_epoch(model, train_loader, loss_fn, DEVICE)
-        val_loss, val_accuracy     = validate_epoch(model, val_loader, loss_fn, DEVICE)
+        train_loss, train_accuracy = validate_epoch(model, train_loader, loss_fn, device)
+        val_loss, val_accuracy     = validate_epoch(model, val_loader, loss_fn, device)
 
         print(
             log.format(epoch + 1,
@@ -33,8 +33,13 @@ def train_epoch(model, dataloader, loss_fn, optimizer, device):
         anchor, positive, negative = [d.to(device) for d in data]
 
         anchor_output = model(anchor)
+        # std_1 = torch.std(anchor_output)
         positive_output = model(positive)
+        # std_2 = torch.std(positive_output)
         negative_output = model(negative)
+        # std_3 = torch.std(negative_output)
+
+        # print("STD anchor/positive/negative: ", std_1, std_2, std_3)
 
         loss = loss_fn(anchor_output, positive_output, negative_output)
 
