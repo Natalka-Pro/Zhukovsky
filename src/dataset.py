@@ -8,8 +8,15 @@ from .functions import seed_everything
 
 class My_Dataset(Dataset):
     def __init__(
-        self, kind, images_dir, augmentation, transform, 
-        threshold, seed, deterministic=True):
+        self,
+        kind,
+        images_dir,
+        augmentation,
+        transform,
+        threshold,
+        seed,
+        deterministic=True,
+    ):
 
         self.kind = 1 if kind == "pos" else 0
         self.augmentation = augmentation
@@ -36,9 +43,11 @@ class My_Dataset(Dataset):
                 while dol >= threshold:
                     transformed_image = self.transform(image)
 
-                    x, col = np.unique(transformed_image.max(dim = 0)[0], return_counts = True)
+                    x, col = np.unique(
+                        transformed_image.max(dim=0)[0], return_counts=True
+                    )
                     ones = col[np.where(x == 1)[0]][0]
-                    dol = ones / col.sum() # доля белого
+                    dol = ones / col.sum()  # доля белого
                     k += 1
                     if k > 100:
                         print(f"Доля белого больше у {i} картинки!!!")
@@ -99,7 +108,7 @@ class TripletDataset(Dataset):
                 return tuple(dataset[i][0] for dataset, i in zip(ds, idxs))
         else:
             raise IndexError
-        
+
 
 class Emb_Dataset(Dataset):
     def __init__(self, model, dataset, device):

@@ -15,7 +15,6 @@ def open_image(image):
     return img
 
 
-
 def plot_transformed_images(image_paths, transform, n=3):
     # https://www.learnpytorch.io/04_pytorch_custom_datasets/
     random_image_paths = random.sample(image_paths, k=n)
@@ -52,7 +51,7 @@ def plot_transformed_images(image_paths, transform, n=3):
 #     plt.show()
 
 
-def show_images(images, labels, n = 4):
+def show_images(images, labels, n=4):
     num_pic = min(len(images), n)
     width, height = 4, num_pic // 4 + 1
 
@@ -71,7 +70,7 @@ def show_images(images, labels, n = 4):
         else:
             title = labels[i]
 
-        x, col = np.unique(img.max(dim = 2)[0], return_counts = True)
+        x, col = np.unique(img.max(dim=2)[0], return_counts=True)
         ones = col[np.where(x == 1)[0]][0]
         dol = ones / col.sum()
         title = f"{title:.6f} (доля белого - {dol:.4f})"
@@ -85,9 +84,18 @@ def show_images(images, labels, n = 4):
     plt.show()
 
 
-def show_result(model, dataset, threshold, batch_size, device, 
-                greater = True, col = 8, seed = 42, sort = False):
-    
+def show_result(
+    model,
+    dataset,
+    threshold,
+    batch_size,
+    device,
+    greater=True,
+    col=8,
+    seed=42,
+    sort=False,
+):
+
     y_pred, y_true, y_prob, X = get_predictions(model, dataset, batch_size, device)
 
     if sort:
@@ -101,11 +109,10 @@ def show_result(model, dataset, threshold, batch_size, device,
     else:
         idx = np.where(y_prob < threshold)[0]
 
-
     sign = ">" if greater else "<"
     print(f"prob {sign} {threshold}\ncount : {len(idx)} out of {len(X)}")
     idx = idx[:col]
     print(f"pic idx : {list(idx)}")
-    show_images(X[idx], y_prob[idx], n = col)
+    show_images(X[idx], y_prob[idx], n=col)
 
     return y_pred, y_true, y_prob, X

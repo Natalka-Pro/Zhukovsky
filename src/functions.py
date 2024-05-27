@@ -45,7 +45,6 @@ def get_predictions(model, dataset, batch_size, device):
     return pred_labels.cpu(), true_labels, prob_labels.cpu(), X
 
 
-
 def seed_everything(seed: int):
     # import random, os
     # import numpy as np
@@ -58,8 +57,6 @@ def seed_everything(seed: int):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
-
-
 
 
 def confusion_matrix(y_true, y_pred):
@@ -89,6 +86,7 @@ def confusion_matrix(y_true, y_pred):
 #                 param.requires_grad = False
 
 #     return model
+
 
 def number_of_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)

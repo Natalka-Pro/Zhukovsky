@@ -1,4 +1,5 @@
 import torch
+
 # https://habr.com/ru/articles/794750/
 
 
@@ -11,16 +12,21 @@ def train_siam(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, dev
     for epoch in range(n_epoch):
         train_epoch(model, train_loader, loss_fn, optimizer, device)
 
-        train_loss, train_accuracy = validate_epoch(model, train_loader, loss_fn, device)
-        val_loss, val_accuracy     = validate_epoch(model, val_loader, loss_fn, device)
+        train_loss, train_accuracy = validate_epoch(
+            model, train_loader, loss_fn, device
+        )
+        val_loss, val_accuracy = validate_epoch(model, val_loader, loss_fn, device)
 
         print(
-            log.format(epoch + 1,
-                       train_loss, 
-                       val_loss,
-                       train_accuracy * 100,
-                       val_accuracy * 100))
-        
+            log.format(
+                epoch + 1,
+                train_loss,
+                val_loss,
+                train_accuracy * 100,
+                val_accuracy * 100,
+            )
+        )
+
     return model
 
 
@@ -70,10 +76,14 @@ def validate_epoch(model, dataloader, loss_fn, device):
             running_loss += loss.item()
 
             total += anchor.size(0)
-            correct += (torch.norm(anchor_output - positive_output, dim=1) <
-                        torch.norm(anchor_output - negative_output, dim=1)).sum().item()
+            correct += (
+                (
+                    torch.norm(anchor_output - positive_output, dim=1)
+                    < torch.norm(anchor_output - negative_output, dim=1)
+                )
+                .sum()
+                .item()
+            )
 
     accuracy = correct / total
     return running_loss / len(dataloader), accuracy
-
-

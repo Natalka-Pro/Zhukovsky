@@ -8,7 +8,7 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, device):
 
     print("train: started")
     for epoch in range(n_epoch):
-        
+
         model.train(True)
 
         # running_losses = []
@@ -48,11 +48,14 @@ def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, device):
         train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, device)
         val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, device)
         print(
-            log.format(epoch + 1,
-                       train_loss, 
-                       val_loss,
-                       train_accuracy * 100,
-                       val_accuracy * 100))
+            log.format(
+                epoch + 1,
+                train_loss,
+                val_loss,
+                train_accuracy * 100,
+                val_accuracy * 100,
+            )
+        )
 
     return model
 
