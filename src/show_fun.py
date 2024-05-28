@@ -1,10 +1,11 @@
-from PIL import Image, ImageOps
 import random
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
 
-from .functions import get_predictions
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from PIL import Image, ImageOps
+
+from .classifier import get_predictions
 
 
 def open_image(image):
@@ -96,7 +97,7 @@ def show_result(
     sort=False,
 ):
 
-    y_pred, y_true, y_prob, X = get_predictions(model, dataset, batch_size, device)
+    X, y_true, y_pred, y_prob = get_predictions(model, dataset, batch_size, device)
 
     if sort:
         _, indices = torch.sort(y_prob, descending=True)

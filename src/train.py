@@ -1,93 +1,90 @@
-import numpy as np
+import os
+import pickle
+from time import gmtime, strftime, time
+
 import torch
+from tqdm import tqdm
 
 
-def train(model, train_loader, val_loader, loss_fn, optimizer, n_epoch, device):
-    log = f"# Epoch {{:{len(str(n_epoch))}}}/{n_epoch} "
-    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, accuracy: {{:6.3f}}%/{{:6.3f}}%"
+def save_model(model, epoch, dir):
+    path = os.path.join(dir, f"epoch_{epoch}.pth")
+    torch.save(model.state_dict(), path)
 
-    print("train: started")
+
+def load_model(model, epoch, dir, device):
+    path = os.path.join(dir, f"epoch_{epoch}.pth")
+    model.load_state_dict(torch.load(path, map_location=device))
+
+
+def save_logs(logs, path):
+    with open(path, "wb") as f:
+        pickle.dump(logs, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_logs(path):
+    with open(path, "rb") as f:
+        logs = pickle.load(f)
+
+    return logs
+
+
+def train(
+    model,
+    train_loader,
+    val_loader,
+    train_epoch,
+    eval_epoch,
+    loss_fn,
+    optimizer,
+    n_epoch,
+    device,
+    kind,
+    path_log,
+    path_model,
+):
+    print(f"train: started, {kind = }")
+
+    log = f"# {{}} Epoch {{:{len(str(n_epoch))}}} "
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
+
+    logs = {
+        "time": [],
+        "epoch": [],
+        "train_loss": [],
+        "val_loss": [],
+        "train_accuracy": [],
+        "val_accuracy": [],
+    }
+
+    start_time = time()
+
     for epoch in range(n_epoch):
+        train_epoch(model, train_loader, loss_fn, optimizer, device)
 
-        model.train(True)
+        train_accuracy, train_loss = eval_epoch(model, train_loader, loss_fn, device)
+        val_accuracy, val_loss = eval_epoch(model, val_loader, loss_fn, device)
 
-        # running_losses = []
-        # running_accuracies = []
-        for i, batch in enumerate(train_loader):
-            # получаем текущий батч
-            X_batch, y_batch = batch
-
-            # forward pass (получение ответов на батч картинок)
-            logits = model(X_batch.to(device))
-
-            # вычисление лосса от выданных сетью ответов и правильных ответов на батч
-            loss = loss_fn(logits, y_batch.to(device))
-            # running_losses.append(loss.item())
-
-            loss.backward()  # backpropagation (вычисление градиентов)
-            optimizer.step()  # обновление весов сети
-            optimizer.zero_grad()  # обнуляем веса
-
-            # вычислим accuracy на текущем train батче
-            # model_answers = torch.argmax(logits, dim=1)
-            # train_accuracy = torch.sum(y_batch == model_answers.cpu()) / len(y_batch)
-            # running_accuracies.append(train_accuracy)
-
-            # Логирование результатов
-            # if (i + 1) % 50 == 0:
-            #     print(
-            #         "Средние train лосс и accuracy на последних 50 итерациях:",
-            #         np.mean(running_losses),
-            #         np.mean(running_accuracies),
-            #         end="\n",
-            #     )
-
-        # после каждой эпохи получаем метрику качества на валидационной выборке
-        model.train(False)
-
-        train_accuracy, train_loss = evaluate(model, train_loader, loss_fn, device)
-        val_accuracy, val_loss = evaluate(model, val_loader, loss_fn, device)
-        print(
-            log.format(
-                epoch + 1,
-                train_loss,
-                val_loss,
-                train_accuracy * 100,
-                val_accuracy * 100,
-            )
+        params = (
+            strftime("%Y-%m-%d %H:%M:%S", gmtime(time())),
+            epoch + 1,
+            train_loss,
+            val_loss,
+            train_accuracy * 100,
+            val_accuracy * 100,
         )
 
-    return model
+        print(log.format(*params))
 
+        logs["time"].append(params[0])
+        logs["epoch"].append(params[1])
+        logs["train_loss"].append(params[2])
+        logs["val_loss"].append(params[3])
+        logs["train_accuracy"].append(params[4])
+        logs["val_accuracy"].append(params[5])
 
-def evaluate(model, dataloader, loss_fn, device):
-    losses = []
+        save_model(model, epoch + 1, path_model)
 
-    num_correct = 0
-    num_elements = 0
+    save_logs(logs, path_log)
 
-    for i, batch in enumerate(dataloader):
-
-        # получаем текущий батч
-        X_batch, y_batch = batch
-        num_elements += len(y_batch)
-
-        # эта строка запрещает вычисление градиентов
-        with torch.no_grad():
-            # получаем ответы сети на картинки батча
-            logits = model(X_batch.to(device))
-
-            # вычисляем лосс на текущем батче
-            loss = loss_fn(logits, y_batch.to(device))
-            losses.append(loss.item())
-
-            # вычисляем ответы сети как номера классов для каждой картинки
-            y_pred = torch.argmax(logits, dim=1)
-
-            # вычисляем количество правильных ответов сети в текущем батче
-            num_correct += torch.sum(y_pred.cpu() == y_batch)
-
-    # вычисляем итоговую долю правильных ответов
-    accuracy = num_correct / num_elements
-
-    return accuracy.numpy(), np.mean(losses)
+    t = strftime("%H:%M:%S", gmtime(time() - start_time))
+    print(f"# Время работы: {t}")

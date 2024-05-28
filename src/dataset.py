@@ -1,8 +1,10 @@
-from torch.utils.data import Dataset
 import os
-from PIL import Image
-import numpy as np
 import random
+
+import numpy as np
+from PIL import Image
+from torch.utils.data import Dataset
+
 from .functions import seed_everything
 
 
@@ -113,7 +115,7 @@ class TripletDataset(Dataset):
 class Emb_Dataset(Dataset):
     def __init__(self, model, dataset, device):
         self.dataset = dataset
-        self.model = model
+        self.model = model.eval()
         self.device = device
 
     def __len__(self):

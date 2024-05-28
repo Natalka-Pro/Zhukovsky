@@ -1,5 +1,6 @@
 seed: 42
 device: cuda
+save_path: checkpoints
 
 dataset:
     data_pos: bin/1
@@ -11,13 +12,17 @@ dataset:
 loader:
     batch_size: 8
 
-siam:
-    n_epochs: 20
+siamese:
+    n_epochs: 5
     learning_rate: 1e-3
-    path: m.pth
+    margin: 9
+    train: True
+    path_model: siamese
+    path_log: siamese.pickle
 
 classifier:
-    n_epochs: 10
+    n_epochs: 5
     learning_rate: 1e-4
-    path: c.pth
-
+    train: True
+    path_model: classifier
+    path_log: classifier.pickle

@@ -1,27 +1,74 @@
-from hydra import compose, initialize
+import json
+import os
+from time import gmtime, strftime, time
 
-from torchvision import datasets, models, transforms
-from time import time
+import numpy as np
 import torch
 import torch.nn as nn
+from hydra import compose, initialize
+from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
+from torchvision import datasets, models, transforms
 
-from .dataset import My_Dataset, TripletDataset, Emb_Dataset
-from .functions import number_of_parameters, seed_everything, create_model
+from . import classifier, siamese
+from .dataset import Emb_Dataset, My_Dataset, TripletDataset
 from .dataset_fun import split_dataset
-from .train_siam import train_siam
-from .train import train as train_cl
+from .functions import create_model, number_of_parameters, seed_everything
+from .train import load_logs, load_model, train
 
 
 def hydra_config():
     initialize(config_path=".", version_base="1.3")
     config = compose(config_name="config.yaml")
+
+    if not os.path.exists(config.save_path):
+        os.makedirs(config.save_path)
     return config
 
 
-def loop(model, CONF, dataset, margin, train=True, kind="siam"):
-    seed_everything(CONF.seed)
-    train_dataset, test_dataset = split_dataset(dataset)
+def config_model(CONF, model, kind):
+    class Info:
+        pass
+
+    conf = Info()
+
+    if kind == "siam":
+        conf.train_epoch = siamese.train_epoch
+        conf.eval_epoch = siamese.eval_epoch
+        conf.loss_fn = nn.TripletMarginLoss(margin=CONF.siamese.margin, p=2)
+        conf.optimizer = torch.optim.Adam(
+            model.parameters(), lr=CONF.siamese.learning_rate
+        )
+        conf.n_epochs = CONF.siamese.n_epochs
+        conf.path_log = CONF.siamese.path_log
+        conf.path_model = CONF.siamese.path_model
+
+    elif kind == "cl":
+        conf.train_epoch = classifier.train_epoch
+        conf.eval_epoch = classifier.eval_epoch
+        conf.loss_fn = torch.nn.CrossEntropyLoss()
+        conf.optimizer = torch.optim.Adam(
+            model.parameters(), lr=CONF.classifier.learning_rate
+        )
+        conf.n_epochs = CONF.classifier.n_epochs
+        conf.path_log = CONF.classifier.path_log
+        conf.path_model = CONF.classifier.path_model
+
+    conf.path_model = os.path.join(CONF.save_path, conf.path_model)
+    if not os.path.exists(conf.path_model):
+        os.makedirs(conf.path_model)
+
+    conf.path_log = os.path.join(CONF.save_path, conf.path_log)
+
+    return conf
+
+
+def show_CONF(CONF, indent=8):
+    d = OmegaConf.to_container(CONF)  # dict
+    print(json.dumps(d, indent=indent))
+
+
+def common_train(CONF, model, train_dataset, test_dataset, kind):
     train_loader = DataLoader(
         train_dataset, batch_size=CONF.loader.batch_size, shuffle=True
     )
@@ -29,35 +76,75 @@ def loop(model, CONF, dataset, margin, train=True, kind="siam"):
         test_dataset, batch_size=CONF.loader.batch_size, shuffle=False
     )
 
-    start_time = time()
     seed_everything(CONF.seed)
 
-    if kind == "siam":
-        loss = nn.TripletMarginLoss(margin=margin, p=2)
-        train_fun = train_siam
-        path = CONF.siam.path
-        n_epochs = CONF.siam.n_epochs
-        optimizer = torch.optim.Adam(model.parameters(), lr=CONF.siam.learning_rate)
+    conf = config_model(CONF, model, kind)
 
-    elif kind == "cl":
-        loss = torch.nn.CrossEntropyLoss()
-        train_fun = train_cl
-        path = CONF.classifier.path
-        n_epochs = CONF.classifier.n_epochs
-        optimizer = torch.optim.Adam(
-            model.parameters(), lr=CONF.classifier.learning_rate
-        )
+    train(
+        model,
+        train_loader,
+        test_loader,
+        conf.train_epoch,
+        conf.eval_epoch,
+        conf.loss_fn,
+        conf.optimizer,
+        conf.n_epochs,
+        CONF.device,
+        kind,
+        conf.path_log,
+        conf.path_model,
+    )
 
-    if train:
-        model = train_fun(
-            model, train_loader, test_loader, loss, optimizer, n_epochs, CONF.device
-        )
-        torch.save(model.state_dict(), path)
-    else:
-        model.load_state_dict(torch.load(path, map_location=CONF.device))
 
-    print(f"# Время работы: {(time() - start_time):6.5f}s")
-    return model
+def load_best_model(CONF, model, train_dataset, test_dataset, kind):
+    print("load_best_model:")
+
+    log = f"# {{}} Epoch {{:{len(str(conf.n_epoch))}}} "
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
+
+    conf = config_model(CONF, model, kind)
+
+    logs = load_logs(conf.path_log)
+    idx = np.array(logs["val_accuracy"]).argmax()
+    best_epoch = logs["epoch"][idx]
+
+    params = (
+        strftime("%Y-%m-%d %H:%M:%S", gmtime(time())),
+        best_epoch,
+        logs["train_loss"][idx],
+        logs["val_loss"][idx],
+        logs["train_accuracy"][idx],
+        logs["val_accuracy"][idx],
+    )
+    print("LOGS:")
+    print(log.format(*params))
+
+    load_model(model, best_epoch, conf.path_model, CONF.device)
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=CONF.loader.batch_size, shuffle=False
+    )
+    val_loader = DataLoader(
+        test_dataset, batch_size=CONF.loader.batch_size, shuffle=False
+    )
+
+    train_accuracy, train_loss = conf.eval_epoch(
+        model, train_loader, conf.loss_fn, CONF.device
+    )
+    val_accuracy, val_loss = conf.eval_epoch(
+        model, val_loader, conf.loss_fn, CONF.device
+    )
+
+    params = (
+        strftime("%Y-%m-%d %H:%M:%S", gmtime(time())),
+        best_epoch,
+        train_loss,
+        val_loss,
+        train_accuracy * 100,
+        val_accuracy * 100,
+    )
+    print("MODEL:")
+    print(log.format(*params))
 
 
 def pos_neg_dataset(CONF):
@@ -96,7 +183,7 @@ def pos_neg_dataset(CONF):
     return pos_dataset, neg_dataset
 
 
-def main(CONF, margin, train=True):
+def main(CONF):
     # if __name__ == "__main__":
     pos_dataset, neg_dataset = pos_neg_dataset(CONF)
 
@@ -119,7 +206,8 @@ def main(CONF, margin, train=True):
     )
 
     print("ResNet loop started!!!")
-    model = loop(model, CONF, dataset, margin, train=train, kind="siam")
+    common_train(CONF, model, dataset, kind="siam")
+
     print("ResNet loop done!!!")
 
     dataset = torch.utils.data.ConcatDataset([pos_dataset, neg_dataset])
@@ -134,7 +222,7 @@ def main(CONF, margin, train=True):
     print(f"num parameters = {num_param}")
 
     print("Classifier loop started!!!")
-    cl = loop(cl, CONF, emb_dataset, margin, train=train, kind="cl")
+    loop(CONF, cl, emb_dataset, kind="cl")
     print("Classifier loop done!!!")
 
     return pos_dataset, neg_dataset, model, cl
