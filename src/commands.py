@@ -17,9 +17,9 @@ from .functions import create_model, number_of_parameters, seed_everything
 from .train import load_logs, load_model, train
 
 
-def hydra_config():
+def hydra_config(file):
     initialize(config_path=".", version_base="1.3")
-    config = compose(config_name="config.yaml")
+    config = compose(config_name=file)
 
     if not os.path.exists(config.save_path):
         os.makedirs(config.save_path)

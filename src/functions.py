@@ -35,6 +35,12 @@ def confusion_matrix(y_true, y_pred):
     return cm
 
 
+def distribution(y_prob):
+    plt.hist(y_prob.numpy(), bins=50)
+    plt.xlim((0, 1))
+    plt.show()
+
+
 # ВАШ КОД: постройте и обучите нейросеть
 # model.children() выдает список сабмодулей нейросети
 # в нашем случае это блоки resnet

@@ -66,15 +66,17 @@ def show_images(images, labels, n=4):
         img = np.transpose(img, (1, 2, 0))
 
         plt.imshow(img)
-        if torch.is_tensor(labels[i]):
-            title = labels[i].numpy()
-        else:
-            title = labels[i]
-
+        # if torch.is_tensor(labels[i]):
+        #     title = labels[i].numpy()
+        # else:
+        #     title = labels[i]
         x, col = np.unique(img.max(dim=2)[0], return_counts=True)
         ones = col[np.where(x == 1)[0]][0]
         dol = ones / col.sum()
-        title = f"{title:.6f} (доля белого - {dol:.4f})"
+
+        number = labels[i]
+        number = "    ".join([str(_) for _ in labels[i]])
+        title = f"{number}, доля белого - {dol:.4f}"
 
         plt.title(title)
 
@@ -93,7 +95,6 @@ def show_result(
     device,
     greater=True,
     col=8,
-    seed=42,
     sort=False,
 ):
 
@@ -101,9 +102,13 @@ def show_result(
 
     if sort:
         _, indices = torch.sort(y_prob, descending=True)
+        indices = indices.numpy()
+        y_true = y_true[indices]
         y_pred = y_pred[indices]
         y_prob = y_prob[indices]
         X = X[indices]
+    else:
+        indices = np.arange(len(X))
 
     if greater:
         idx = np.where(y_prob > threshold)[0]
@@ -113,7 +118,10 @@ def show_result(
     sign = ">" if greater else "<"
     print(f"prob {sign} {threshold}\ncount : {len(idx)} out of {len(X)}")
     idx = idx[:col]
-    print(f"pic idx : {list(idx)}")
-    show_images(X[idx], y_prob[idx], n=col)
+    print(f"pic idx : {list(indices[idx])}")
 
-    return y_pred, y_true, y_prob, X
+    labels = np.stack((indices[idx], y_prob[idx]), axis=1)  # n x 2
+
+    show_images(X[idx], labels, n=col)
+
+    return X, y_true, y_pred, y_prob, indices

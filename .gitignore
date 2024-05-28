@@ -2,6 +2,6 @@ images
 data
 *.zip
 .ipynb_checkpoints
-Untitled Document
+Untitled Document*
 bin
 __pycache__
