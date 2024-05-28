@@ -36,7 +36,7 @@ def train(
     eval_epoch,
     loss_fn,
     optimizer,
-    n_epoch,
+    n_epochs,
     device,
     kind,
     path_log,
@@ -44,7 +44,7 @@ def train(
 ):
     print(f"train: started, {kind = }")
 
-    log = f"# {{}} Epoch {{:{len(str(n_epoch))}}} "
+    log = f"# {{}} Epoch {{:{len(str(n_epochs))}}} "
     log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
 
     logs = {
@@ -58,7 +58,7 @@ def train(
 
     start_time = time()
 
-    for epoch in range(n_epoch):
+    for epoch in range(n_epochs):
         train_epoch(model, train_loader, loss_fn, optimizer, device)
 
         train_accuracy, train_loss = eval_epoch(model, train_loader, loss_fn, device)

@@ -98,11 +98,10 @@ def common_train(CONF, model, train_dataset, test_dataset, kind):
 
 def load_best_model(CONF, model, train_dataset, test_dataset, kind):
     print("load_best_model:")
-
-    log = f"# {{}} Epoch {{:{len(str(conf.n_epoch))}}} "
-    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
-
     conf = config_model(CONF, model, kind)
+
+    log = f"# {{}} Epoch {{:{len(str(conf.n_epochs))}}} "
+    log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
 
     logs = load_logs(conf.path_log)
     idx = np.array(logs["val_accuracy"]).argmax()
@@ -222,7 +221,7 @@ def main(CONF):
     print(f"num parameters = {num_param}")
 
     print("Classifier loop started!!!")
-    loop(CONF, cl, emb_dataset, kind="cl")
+    common_train(CONF, cl, emb_dataset, kind="cl")
     print("Classifier loop done!!!")
 
     return pos_dataset, neg_dataset, model, cl
