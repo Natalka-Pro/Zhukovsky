@@ -58,8 +58,7 @@ def config_model(CONF, model, kind):
     if not os.path.exists(conf.path_model):
         os.makedirs(conf.path_model)
 
-    conf.path_log = os.path.join(CONF.save_path, conf.path_log)
-
+    conf.path_log = os.path.join(conf.path_model, conf.path_log)
     return conf
 
 
