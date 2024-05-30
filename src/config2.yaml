@@ -1,3 +1,5 @@
+# обучение только resnet
+
 seed: 42
 device: cuda
 save_path: checkpoints

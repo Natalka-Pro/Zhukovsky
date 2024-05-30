@@ -1,0 +1,16 @@
+# на IAM
+
+seed: 42
+device: cuda
+save_path: checkpoints
+
+loader:
+    batch_size: 64
+
+siamese:
+    n_epochs: 100
+    learning_rate: 1e-3
+    margin: 9
+    train: True
+    path_model: pretrain
+    path_log: pretrain.pickle
