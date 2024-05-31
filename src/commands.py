@@ -149,8 +149,8 @@ def pos_neg_dataset(CONF):
     transform = transforms.Compose(
         [
             transforms.RandomCrop(300),
-            # transforms.Resize(256),
             transforms.CenterCrop(224),
+            transforms.RandomPerspective(distortion_scale=0.5, p=0.5, fill=255),
             transforms.ToTensor(),
             # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]

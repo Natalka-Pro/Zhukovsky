@@ -7,15 +7,15 @@ save_path: checkpoints
 dataset:
     data_pos: bin/1
     data_neg: bin/0
-    threshold: 0.999 # доля белого
-    pos_aug: 22
-    neg_aug: 2
+    threshold: 0.99 # доля белого
+    pos_aug: 44
+    neg_aug: 4
 
 loader:
-    batch_size: 8
+    batch_size: 64
 
 siamese:
-    n_epochs: 50
+    n_epochs: 20
     learning_rate: 1e-3
     margin: 9
     train: True
@@ -23,7 +23,7 @@ siamese:
     path_log: siamese.pickle
 
 classifier:
-    n_epochs: 30
+    n_epochs: 10
     learning_rate: 1e-4
     train: True
     path_model: classifier
