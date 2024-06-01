@@ -18,11 +18,14 @@ from .train import load_logs, load_model, train
 
 
 def hydra_config(file):
-    initialize(config_path=".", version_base="1.3")
+    initialize(config_path="../configs", version_base="1.3")
     config = compose(config_name=file)
 
     if not os.path.exists(config.save_path):
         os.makedirs(config.save_path)
+
+    config.device = "cuda" if torch.cuda.is_available() else "cpu"
+    
     return config
 
 
@@ -119,42 +122,44 @@ def load_best_model(CONF, model, train_dataset, test_dataset, kind):
 
     load_model(model, best_epoch, conf.path_model, CONF.device)
 
-    train_loader = DataLoader(
-        train_dataset, batch_size=CONF.loader.batch_size, shuffle=False
-    )
-    val_loader = DataLoader(
-        test_dataset, batch_size=CONF.loader.batch_size, shuffle=False
-    )
+    if train_dataset is not None and test_dataset is not None:
 
-    train_accuracy, train_loss = conf.eval_epoch(
-        model, train_loader, conf.loss_fn, CONF.device
-    )
-    val_accuracy, val_loss = conf.eval_epoch(
-        model, val_loader, conf.loss_fn, CONF.device
-    )
+        train_loader = DataLoader(
+            train_dataset, batch_size=CONF.loader.batch_size, shuffle=False
+        )
+        val_loader = DataLoader(
+            test_dataset, batch_size=CONF.loader.batch_size, shuffle=False
+        )
 
-    params = (
-        strftime("%Y-%m-%d %H:%M:%S", gmtime(time())),
-        best_epoch,
-        train_loss,
-        val_loss,
-        train_accuracy * 100,
-        val_accuracy * 100,
-    )
-    print("MODEL:")
-    print(log.format(*params))
+        train_accuracy, train_loss = conf.eval_epoch(
+            model, train_loader, conf.loss_fn, CONF.device
+        )
+        val_accuracy, val_loss = conf.eval_epoch(
+            model, val_loader, conf.loss_fn, CONF.device
+        )
+
+        params = (
+            strftime("%Y-%m-%d %H:%M:%S", gmtime(time())),
+            best_epoch,
+            train_loss,
+            val_loss,
+            train_accuracy * 100,
+            val_accuracy * 100,
+        )
+        print("MODEL:")
+        print(log.format(*params))
 
 
-def pos_neg_dataset(CONF):
-    transform = transforms.Compose(
-        [
-            transforms.RandomCrop(300),
-            transforms.CenterCrop(224),
-            transforms.RandomPerspective(distortion_scale=0.5, p=0.5, fill=255),
-            transforms.ToTensor(),
-            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
+def pos_neg_dataset(CONF, transform):
+    # transform = transforms.Compose(
+    #     [
+    #         transforms.RandomCrop(300),
+    #         transforms.CenterCrop(224),
+    #         transforms.RandomPerspective(distortion_scale=0.5, p=0.5, fill=255),
+    #         transforms.ToTensor(),
+    #
+    #     ]
+    # )
 
     pos_dataset = My_Dataset(
         "pos",
@@ -181,46 +186,46 @@ def pos_neg_dataset(CONF):
     return pos_dataset, neg_dataset
 
 
-def main(CONF):
-    # if __name__ == "__main__":
-    pos_dataset, neg_dataset = pos_neg_dataset(CONF)
+# def main(CONF):
+#     # if __name__ == "__main__":
+#     pos_dataset, neg_dataset = pos_neg_dataset(CONF)
 
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+#     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 
-    # print(f"num parameters ResNet = {num_param}")
-    # num_layers = len(list(model.children()))
-    # print(f"num layers = {num_layers}")
-    num_classes = 1000
-    num_non_freeze = 513000
-    print(f"num_non_freeze = {num_non_freeze}/{number_of_parameters(model)}")
+#     # print(f"num parameters ResNet = {num_param}")
+#     # num_layers = len(list(model.children()))
+#     # print(f"num layers = {num_layers}")
+#     num_classes = 1000
+#     num_non_freeze = 513000
+#     print(f"num_non_freeze = {num_non_freeze}/{number_of_parameters(model)}")
 
-    #############################
-    seed_everything(CONF.seed)
-    model = create_model(model, num_non_freeze, num_classes).to(CONF.device)
-    print(f"num parameters ResNet = {number_of_parameters(model)}")
+#     #############################
+#     seed_everything(CONF.seed)
+#     model = create_model(model, num_non_freeze, num_classes).to(CONF.device)
+#     print(f"num parameters ResNet = {number_of_parameters(model)}")
 
-    dataset = TripletDataset(
-        pos_dataset, neg_dataset, required_len=1000, deterministic=True, seed=CONF.seed
-    )
+#     dataset = TripletDataset(
+#         pos_dataset, neg_dataset, required_len=1000, deterministic=True, seed=CONF.seed
+#     )
 
-    print("ResNet loop started!!!")
-    common_train(CONF, model, dataset, kind="siam")
+#     print("ResNet loop started!!!")
+#     common_train(CONF, model, dataset, kind="siam")
 
-    print("ResNet loop done!!!")
+#     print("ResNet loop done!!!")
 
-    dataset = torch.utils.data.ConcatDataset([pos_dataset, neg_dataset])
-    emb_dataset = Emb_Dataset(model, dataset, CONF.device)
+#     dataset = torch.utils.data.ConcatDataset([pos_dataset, neg_dataset])
+#     emb_dataset = Emb_Dataset(model, dataset, CONF.device)
 
-    seed_everything(CONF.seed)
-    cl = nn.Sequential(nn.Linear(1000, 512), nn.ReLU(), nn.Linear(512, 2)).to(
-        CONF.device
-    )
+#     seed_everything(CONF.seed)
+#     cl = nn.Sequential(nn.Linear(1000, 512), nn.ReLU(), nn.Linear(512, 2)).to(
+#         CONF.device
+#     )
 
-    num_param = number_of_parameters(cl)
-    print(f"num parameters = {num_param}")
+#     num_param = number_of_parameters(cl)
+#     print(f"num parameters = {num_param}")
 
-    print("Classifier loop started!!!")
-    common_train(CONF, cl, emb_dataset, kind="cl")
-    print("Classifier loop done!!!")
+#     print("Classifier loop started!!!")
+#     common_train(CONF, cl, emb_dataset, kind="cl")
+#     print("Classifier loop done!!!")
 
-    return pos_dataset, neg_dataset, model, cl
+#     return pos_dataset, neg_dataset, model, cl

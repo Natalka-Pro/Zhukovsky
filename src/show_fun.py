@@ -18,23 +18,24 @@ def open_image(image):
 
 def plot_transformed_images(image_paths, transform, n=3):
     # https://www.learnpytorch.io/04_pytorch_custom_datasets/
-    random_image_paths = random.sample(image_paths, k=n)
+    # random_image_paths = random.sample(image_paths, k=n)
+    image_paths = image_paths[:n]
 
-    for image_path in random_image_paths:
+    for image_path in image_paths:
 
         f = Image.open(image_path)
         fig, ax = plt.subplots(1, 2, figsize=(12, 5))
         ax[0].imshow(f)
         ax[0].set_title(f"Original \nSize: {f.size}")
-        # ax[0].axis("off")
+        ax[0].axis("off")
 
         # Transform and plot image
         # Note: permute() will change shape of image to suit matplotlib
         # (PyTorch default is [C, H, W] but Matplotlib is [H, W, C])
         transformed_image = transform(f).permute(1, 2, 0)
         ax[1].imshow(transformed_image)
-        ax[1].set_title(f"Transformed \nSize: {transformed_image.size()}")
-        # ax[1].axis("off")
+        ax[1].set_title(f"Transformed \nSize: {tuple(transformed_image.shape)}")
+        ax[1].axis("off")
 
 
 # def show_batch(images, labels, n=4):

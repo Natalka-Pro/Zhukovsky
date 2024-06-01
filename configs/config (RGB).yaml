@@ -1,0 +1,21 @@
+# сиамская сеть
+
+seed: 42
+device: cuda
+save_path: checkpoints
+
+dataset:
+    data_pos: data/1
+    data_neg: data/0
+    threshold: 0.99 # доля белого
+    pos_aug: 44
+    neg_aug: 4
+
+loader:
+    batch_size: 64
+
+classifier:
+    n_epochs: 10
+    learning_rate: 1e-4
+    path_model: classifier
+    path_log: classifier.pickle

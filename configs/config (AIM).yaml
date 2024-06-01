@@ -1,0 +1,21 @@
+# на IAM
+
+seed: 42
+device: cuda
+save_path: checkpoints
+
+loader:
+    batch_size: 64
+
+siamese:
+    n_epochs: 100
+    learning_rate: 3e-4
+    margin: 9
+    path_model: siam_aim
+    path_log: siam_aim.pickle
+
+classifier:
+    n_epochs: 50
+    learning_rate: 3e-4
+    path_model: cl_aim
+    path_log: cl_aim.pickle

@@ -18,6 +18,7 @@ class My_Dataset(Dataset):
         threshold,
         seed,
         deterministic=True,
+        use_threshold=True,
     ):
 
         self.kind = 1 if kind == "pos" else 0
@@ -40,20 +41,23 @@ class My_Dataset(Dataset):
                 image = Image.open(self.image_paths[i % self.real_len])
                 i += 1
 
-                dol = 1
-                k = 0
-                while dol >= threshold:
-                    transformed_image = self.transform(image)
+                if use_threshold: 
+                    dol = 1
+                    k = 0
+                    while dol >= threshold:
+                        transformed_image = self.transform(image)
 
-                    x, col = np.unique(
-                        transformed_image.max(dim=0)[0], return_counts=True
-                    )
-                    ones = col[np.where(x == 1)[0]][0]
-                    dol = ones / col.sum()  # доля белого
-                    k += 1
-                    if k > 100:
-                        print(f"Доля белого больше у {i} картинки!!!")
-                        break
+                        x, col = np.unique(
+                            transformed_image.max(dim=0)[0], return_counts=True
+                        )
+                        ones = col[np.where(x == 1)[0]][0]
+                        dol = ones / col.sum()  # доля белого
+                        k += 1
+                        if k > 100:
+                            print(f"Доля белого больше у {i} картинки!!!")
+                            break
+                else:
+                    transformed_image = self.transform(image)
 
                 self.X.append((transformed_image, self.kind))
 
