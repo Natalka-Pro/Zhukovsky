@@ -15,10 +15,9 @@ class My_Dataset(Dataset):
         images_dir,
         augmentation,
         transform,
-        threshold,
-        seed,
+        threshold=False,
+        seed=42,
         deterministic=True,
-        use_threshold=True,
     ):
 
         self.kind = 1 if kind == "pos" else 0
@@ -41,7 +40,7 @@ class My_Dataset(Dataset):
                 image = Image.open(self.image_paths[i % self.real_len])
                 i += 1
 
-                if use_threshold: 
+                if threshold:
                     dol = 1
                     k = 0
                     while dol >= threshold:

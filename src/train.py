@@ -21,9 +21,23 @@ def save_logs(logs, path):
         pickle.dump(logs, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_logs(path):
+def load_logs(path, verbose=False):
     with open(path, "rb") as f:
         logs = pickle.load(f)
+
+    if verbose:
+        for i in range(len(logs["train_loss"])):
+            params = (
+                logs["time"][i],
+                logs["epoch"][i],
+                logs["train_loss"][i],
+                logs["val_loss"][i],
+                logs["train_accuracy"][i],
+                logs["val_accuracy"][i],
+            )
+            log = f"# {{}} Epoch {{:{logs['epoch'][-1]}}} "
+            log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
+            print(log.format(*params))
 
     return logs
 

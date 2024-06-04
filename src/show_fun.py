@@ -71,13 +71,15 @@ def show_images(images, labels, n=4):
         #     title = labels[i].numpy()
         # else:
         #     title = labels[i]
-        x, col = np.unique(img.max(dim=2)[0], return_counts=True)
-        ones = col[np.where(x == 1)[0]][0]
-        dol = ones / col.sum()
+        # x, col = np.unique(img.max(dim=2)[0], return_counts=True)
+        # ones = col[np.where(x == 1)[0]][0]
+        # dol = ones / col.sum()
 
         number = labels[i]
-        number = "    ".join([str(_) for _ in labels[i]])
-        title = f"{number}, доля белого - {dol:.4f}"
+        # number = "    ".join([str(_) for _ in labels[i]])
+        title = (
+            f"№ {int(number[0])}:   {round(number[1], 5)}"  # , доля белого - {dol:.4f}"
+        )
 
         plt.title(title)
 
@@ -88,6 +90,10 @@ def show_images(images, labels, n=4):
     plt.show()
 
 
+def show_voting():
+    pass
+
+
 def show_result(
     model,
     dataset,
@@ -95,14 +101,17 @@ def show_result(
     batch_size,
     device,
     greater=True,
-    col=8,
+    col=None,
     sort=False,
 ):
 
     X, y_true, y_pred, y_prob = get_predictions(model, dataset, batch_size, device)
 
     if sort:
-        _, indices = torch.sort(y_prob, descending=True)
+        if greater:
+            _, indices = torch.sort(y_prob, descending=True)
+        else:
+            _, indices = torch.sort(y_prob, descending=False)
         indices = indices.numpy()
         y_true = y_true[indices]
         y_pred = y_pred[indices]
@@ -118,11 +127,12 @@ def show_result(
 
     sign = ">" if greater else "<"
     print(f"prob {sign} {threshold}\ncount : {len(idx)} out of {len(X)}")
-    idx = idx[:col]
+    if col:
+        idx = idx[:col]
     print(f"pic idx : {list(indices[idx])}")
 
     labels = np.stack((indices[idx], y_prob[idx]), axis=1)  # n x 2
 
-    show_images(X[idx], labels, n=col)
+    show_images(X[idx], labels, n=len(idx))
 
     return X, y_true, y_pred, y_prob, indices

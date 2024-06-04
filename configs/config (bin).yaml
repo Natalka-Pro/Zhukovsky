@@ -3,15 +3,15 @@ device: cuda
 save_path: checkpoints
 
 dataset:
-    data_pos: data/1
-    data_neg: data/0
+    data_pos: bin/1
+    data_neg: bin/0
     threshold: False
 
 loader:
     batch_size: 64
 
 classifier:
-    n_epochs: 30
+    n_epochs: 50
     learning_rate: 3e-4
     path_model: RGB
     path_log: RGB.pickle

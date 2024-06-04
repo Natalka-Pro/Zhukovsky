@@ -5,6 +5,7 @@ from time import gmtime, strftime, time
 import numpy as np
 import torch
 import torch.nn as nn
+import hydra
 from hydra import compose, initialize
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
@@ -12,12 +13,13 @@ from torchvision import datasets, models, transforms
 
 from . import classifier, siamese
 from .dataset import Emb_Dataset, My_Dataset, TripletDataset
-from .dataset_fun import split_dataset
-from .functions import create_model, number_of_parameters, seed_everything
+from .functions import seed_everything
 from .train import load_logs, load_model, train
 
 
 def hydra_config(file):
+    hydra.core.global_hydra.GlobalHydra.instance().clear()
+
     initialize(config_path="../configs", version_base="1.3")
     config = compose(config_name=file)
 
@@ -25,7 +27,36 @@ def hydra_config(file):
         os.makedirs(config.save_path)
 
     config.device = "cuda" if torch.cuda.is_available() else "cpu"
-    
+
+    if not os.path.exists(config.save_path):
+        os.makedirs(config.save_path)
+
+    config.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if "classifier" in config:
+        path_model = os.path.join(
+            config.save_path, config.classifier.path_model
+        )
+
+        config.classifier.path_model = path_model
+
+        if not os.path.exists(path_model):
+            os.makedirs(path_model)
+
+        config.classifier.path_log = os.path.join(path_model, config.classifier.path_log)
+
+    if "siamese" in config:
+        path_model = os.path.join(
+            config.save_path, config.siamese.path_model
+        )
+
+        config.siamese.path_model = path_model
+
+        if not os.path.exists(path_model):
+            os.makedirs(path_model)
+
+        config.siamese.path_log = os.path.join(path_model, config.siamese.path_log)
+
     return config
 
 
@@ -43,8 +74,8 @@ def config_model(CONF, model, kind):
             model.parameters(), lr=CONF.siamese.learning_rate
         )
         conf.n_epochs = CONF.siamese.n_epochs
-        conf.path_log = CONF.siamese.path_log
         conf.path_model = CONF.siamese.path_model
+        conf.path_log = CONF.siamese.path_log
 
     elif kind == "cl":
         conf.train_epoch = classifier.train_epoch
@@ -54,14 +85,9 @@ def config_model(CONF, model, kind):
             model.parameters(), lr=CONF.classifier.learning_rate
         )
         conf.n_epochs = CONF.classifier.n_epochs
-        conf.path_log = CONF.classifier.path_log
         conf.path_model = CONF.classifier.path_model
+        conf.path_log = CONF.classifier.path_log
 
-    conf.path_model = os.path.join(CONF.save_path, conf.path_model)
-    if not os.path.exists(conf.path_model):
-        os.makedirs(conf.path_model)
-
-    conf.path_log = os.path.join(conf.path_model, conf.path_log)
     return conf
 
 
@@ -150,21 +176,12 @@ def load_best_model(CONF, model, train_dataset, test_dataset, kind):
         print(log.format(*params))
 
 
-def pos_neg_dataset(CONF, transform):
-    # transform = transforms.Compose(
-    #     [
-    #         transforms.RandomCrop(300),
-    #         transforms.CenterCrop(224),
-    #         transforms.RandomPerspective(distortion_scale=0.5, p=0.5, fill=255),
-    #         transforms.ToTensor(),
-    #
-    #     ]
-    # )
+def pos_neg_dataset(CONF, transform, pos_aug, neg_aug):
 
     pos_dataset = My_Dataset(
         "pos",
         CONF.dataset.data_pos,
-        augmentation=CONF.dataset.pos_aug,
+        augmentation=pos_aug,
         transform=transform,
         threshold=CONF.dataset.threshold,
         seed=CONF.seed,
@@ -175,7 +192,7 @@ def pos_neg_dataset(CONF, transform):
     neg_dataset = My_Dataset(
         "neg",
         CONF.dataset.data_neg,
-        augmentation=CONF.dataset.neg_aug,
+        augmentation=neg_aug,
         transform=transform,
         threshold=CONF.dataset.threshold,
         seed=CONF.seed,
