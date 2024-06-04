@@ -1,0 +1,26 @@
+# предтренерованная сиамская сеть
+
+seed: 42
+device: cuda
+save_path: checkpoints
+
+dataset:
+    data_pos: bin/1
+    data_neg: bin/0
+    threshold: 0.9
+
+loader:
+    batch_size: 64
+
+siamese:
+    n_epochs: 50
+    learning_rate: 3e-4
+    margin: 9
+    path_model: siamese
+    path_log: siamese.pickle
+
+classifier:
+    n_epochs: 30
+    learning_rate: 3e-4
+    path_model: classifier
+    path_log: classifier.pickle

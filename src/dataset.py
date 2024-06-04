@@ -54,6 +54,7 @@ class My_Dataset(Dataset):
                         k += 1
                         if k > 100:
                             print(f"Доля белого больше у {i} картинки!!!")
+                            print(self.image_paths[i % self.real_len])
                             break
                 else:
                     transformed_image = self.transform(image)
