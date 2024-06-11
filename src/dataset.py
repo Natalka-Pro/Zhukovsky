@@ -37,7 +37,8 @@ class My_Dataset(Dataset):
 
             i = 0
             while len(self.X) < self.required_len:
-                image = Image.open(self.image_paths[i % self.real_len])
+                name = self.image_paths[i % self.real_len]
+                image = Image.open(name)
                 i += 1
 
                 if threshold:
@@ -49,12 +50,12 @@ class My_Dataset(Dataset):
                         x, col = np.unique(
                             transformed_image.max(dim=0)[0], return_counts=True
                         )
-                        ones = col[np.where(x == 1)[0]][0]
+                        ones = col[np.where(x == 1)[0]][0] # белый
                         dol = ones / col.sum()  # доля белого
                         k += 1
                         if k > 100:
-                            print(f"Доля белого больше у {i} картинки!!!")
-                            print(self.image_paths[i % self.real_len])
+                            print(f"Доля белого больше у {i-1} картинки!!!")
+                            print(name)
                             break
                 else:
                     transformed_image = self.transform(image)

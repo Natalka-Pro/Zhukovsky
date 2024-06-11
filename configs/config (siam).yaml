@@ -7,7 +7,7 @@ save_path: checkpoints
 dataset:
     data_pos: bin/1
     data_neg: bin/0
-    threshold: 0.9
+    threshold: 0.95
 
 loader:
     batch_size: 64
