@@ -23,3 +23,7 @@ https://habr.com/ru/articles/720614/
 CNN архитектуры:
 https://habr.com/ru/companies/intel/articles/417809/
 https://habr.com/ru/articles/511372/
+
+
+Improve photo quality handwriting text ai:
+https://picsart.com/ai-image-enhancer/
