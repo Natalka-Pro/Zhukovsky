@@ -60,28 +60,29 @@ def number_of_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-# def create_model(model, num_non_freeze, num_out_classes):
-#     # замена последнего слоя сети
-#     model.fc = nn.Linear(512, num_out_classes)
-
-#     num_param = number_of_parameters(model)
-#     num_freeze = num_param - num_non_freeze
-
-#     # заморозка слоев
-#     cur_freeze = 0
-#     for i, layer in enumerate(model.children()):
-#         for param in layer.parameters():
-#             if param.requires_grad:
-#                 if cur_freeze >= num_freeze:
-#                     return model
-
-#                 param.requires_grad = False
-#                 cur_freeze += param.numel()
-#                 # print(num_param - cur_freeze)
-
-
 # for i, layer in enumerate(model.children()):
 #     print(f"{i} layer")
 #     # print(layer)
 #     for param in layer.parameters():
 #         print(f"  grad = {param.requires_grad}, {param.shape}, {param.numel()}")
+
+
+def create_model(model, num_non_freeze, num_out_classes, verbose=False):
+    # замена последнего слоя сети
+    model.fc = nn.Linear(512, num_out_classes)
+
+    num_param = number_of_parameters(model)
+    num_freeze = num_param - num_non_freeze
+
+    # заморозка слоев
+    cur_freeze = 0
+    for i, layer in enumerate(model.children()):
+        for param in layer.parameters():
+            if param.requires_grad:
+                if cur_freeze >= num_freeze:
+                    return model
+
+                param.requires_grad = False
+                cur_freeze += param.numel()
+                if verbose:
+                    print(num_param - cur_freeze)

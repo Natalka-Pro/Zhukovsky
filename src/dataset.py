@@ -2,6 +2,7 @@ import os
 import random
 
 import numpy as np
+import torch.nn as nn
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -50,12 +51,11 @@ class My_Dataset(Dataset):
                         x, col = np.unique(
                             transformed_image.max(dim=0)[0], return_counts=True
                         )
-                        ones = col[np.where(x == 1)[0]][0] # белый
+                        ones = col[np.where(x == 1)[0]][0]  # белый
                         dol = ones / col.sum()  # доля белого
                         k += 1
                         if k > 100:
-                            print(f"Доля белого больше у {i-1} картинки!!!")
-                            print(name)
+                            print(f"Доля белого больше у {name}!!!")
                             break
                 else:
                     transformed_image = self.transform(image)
@@ -133,3 +133,16 @@ class Emb_Dataset(Dataset):
             return emb, cls
         else:
             raise IndexError
+
+
+class Pipeline(nn.Module):
+    def __init__(self, model, cl, CONF):
+        super().__init__()
+        self.model = model
+        self.cl = cl
+        self.CONF = CONF
+
+    def forward(self, x):
+        x = self.model(x.to(self.CONF.device))
+        x = self.cl(x)
+        return x

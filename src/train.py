@@ -97,8 +97,7 @@ def train(
         logs["val_accuracy"].append(params[5])
 
         save_model(model, epoch + 1, path_model)
-
-    save_logs(logs, path_log)
+        save_logs(logs, path_log)
 
     t = strftime("%H:%M:%S", gmtime(time() - start_time))
     print(f"# Время работы: {t}")

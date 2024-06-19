@@ -2,10 +2,10 @@ import json
 import os
 from time import gmtime, strftime, time
 
+import hydra
 import numpy as np
 import torch
 import torch.nn as nn
-import hydra
 from hydra import compose, initialize
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
@@ -34,21 +34,19 @@ def hydra_config(file):
     config.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if "classifier" in config:
-        path_model = os.path.join(
-            config.save_path, config.classifier.path_model
-        )
+        path_model = os.path.join(config.save_path, config.classifier.path_model)
 
         config.classifier.path_model = path_model
 
         if not os.path.exists(path_model):
             os.makedirs(path_model)
 
-        config.classifier.path_log = os.path.join(path_model, config.classifier.path_log)
+        config.classifier.path_log = os.path.join(
+            path_model, config.classifier.path_log
+        )
 
     if "siamese" in config:
-        path_model = os.path.join(
-            config.save_path, config.siamese.path_model
-        )
+        path_model = os.path.join(config.save_path, config.siamese.path_model)
 
         config.siamese.path_model = path_model
 

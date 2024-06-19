@@ -5,8 +5,8 @@ device: cuda
 save_path: checkpoints
 
 dataset:
-    data_pos: bin/1
-    data_neg: bin/0
+    data_pos: bin/1res
+    data_neg: bin/0res
     threshold: 0.95
 
 loader:
