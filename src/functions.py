@@ -1,5 +1,6 @@
 import os
 import random
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +11,19 @@ import seaborn as sns
 import torch
 import torch.nn as nn
 from sklearn.metrics import confusion_matrix as conf_matrix
+
+
+def dir_paths(dir):
+    paths = []
+    for p in sorted(os.listdir(dir)):
+        path = os.path.join(dir, p)
+        paths.append(path)
+    return paths
+
+
+def file_name(path):
+    p = re.split(r"/", path)
+    return p[-1]
 
 
 def seed_everything(seed: int):

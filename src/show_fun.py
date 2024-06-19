@@ -15,6 +15,23 @@ def open_image(image):
     img = ImageOps.exif_transpose(img)
     return img
 
+def graph2(x, y1, y2, title="", ylog=True, ylabel=""):
+
+    plt.title(title, fontsize=13)
+
+    plt.plot(x, y1, color='g', label = "Train")
+    plt.plot(x, y2, color='m', label = "Val")
+
+    plt.grid(True)
+    plt.ylabel(ylabel,  fontsize=10)
+    plt.xlabel("Номер эпохи",  fontsize=10)
+
+    if ylog:
+        plt.yscale('log')
+
+    plt.legend(fontsize=10)
+
+
 def graph_logs(logs, num=None, ylog=True):
     plt.figure(figsize=(15, 6))
 
@@ -36,6 +53,7 @@ def graph_logs(logs, num=None, ylog=True):
     graph2(x, y1, y2, title="", ylog=ylog, ylabel="accuracy")
 
     plt.show()
+
 
 def plot_transformed_images(image_paths, transform, n=3):
     # https://www.learnpytorch.io/04_pytorch_custom_datasets/
