@@ -15,27 +15,53 @@ def open_image(image):
     img = ImageOps.exif_transpose(img)
     return img
 
+def graph_logs(logs, num=None, ylog=True):
+    plt.figure(figsize=(15, 6))
+
+    if not num:
+        num = len(logs["epoch"])
+
+    x = logs["epoch"][:num]
+    y1 = logs["train_loss"][:num]
+    y2 = logs["val_loss"][:num]
+
+    plt.subplot(1, 2, 1)
+    graph2(x, y1, y2, title="", ylog=ylog, ylabel="loss")
+
+    x = logs["epoch"][:num]
+    y1 = logs["train_accuracy"][:num]
+    y2 = logs["val_accuracy"][:num]
+
+    plt.subplot(1, 2, 2)
+    graph2(x, y1, y2, title="", ylog=ylog, ylabel="accuracy")
+
+    plt.show()
 
 def plot_transformed_images(image_paths, transform, n=3):
     # https://www.learnpytorch.io/04_pytorch_custom_datasets/
     # random_image_paths = random.sample(image_paths, k=n)
-    image_paths = image_paths[:n]
+
+    if n:
+        image_paths = image_paths[:n]
 
     for image_path in image_paths:
 
         f = Image.open(image_path)
-        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-        ax[0].imshow(f)
-        ax[0].set_title(f"Original \nSize: {f.size}")
-        ax[0].axis("off")
+        plt.figure(figsize=(12, 6))
 
+        plt.subplot(1, 2, 1)
+        plt.imshow(f)
+        plt.title(f"Original \nSize: {f.size}")
+        plt.axis("off")
         # Transform and plot image
         # Note: permute() will change shape of image to suit matplotlib
         # (PyTorch default is [C, H, W] but Matplotlib is [H, W, C])
         transformed_image = transform(f).permute(1, 2, 0)
-        ax[1].imshow(transformed_image)
-        ax[1].set_title(f"Transformed \nSize: {tuple(transformed_image.shape)}")
-        ax[1].axis("off")
+        plt.subplot(1, 2, 2)
+        plt.imshow(transformed_image)
+        plt.title(f"Transformed \nSize: {tuple(transformed_image.shape)}")
+        plt.axis("off")
+        plt.show()
 
 
 # def show_batch(images, labels, n=4):

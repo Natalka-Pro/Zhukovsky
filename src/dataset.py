@@ -19,8 +19,8 @@ class My_Dataset(Dataset):
         threshold=False,
         seed=42,
         deterministic=True,
+        limit=None,
     ):
-
         self.kind = 1 if kind == "pos" else 0
         self.augmentation = augmentation
         self.transform = transform
@@ -31,6 +31,24 @@ class My_Dataset(Dataset):
 
         self.real_len = len(self.files_names)
         self.required_len = self.augmentation * self.real_len
+
+        def trans_until(image, name, threshold, limit, transform):
+            if not limit:
+                limit = 100
+            dol = 1
+            min_dol = 1
+            k = 0
+            while dol >= threshold:
+                transformed_image = transform(image)
+
+                x, col = np.unique(transformed_image.max(dim=0)[0], return_counts=True)
+                ones = col[np.where(x == 1)[0]][0]  # белый
+                dol = ones / col.sum()  # доля белого
+                min_dol = min(min_dol, dol)
+                k += 1
+                if k > limit:
+                    print(f"Доля белого у {name} больше {threshold} ({min_dol})!!!")
+                    break
 
         if self.deterministic:
             seed_everything(seed)
@@ -43,20 +61,9 @@ class My_Dataset(Dataset):
                 i += 1
 
                 if threshold:
-                    dol = 1
-                    k = 0
-                    while dol >= threshold:
-                        transformed_image = self.transform(image)
-
-                        x, col = np.unique(
-                            transformed_image.max(dim=0)[0], return_counts=True
-                        )
-                        ones = col[np.where(x == 1)[0]][0]  # белый
-                        dol = ones / col.sum()  # доля белого
-                        k += 1
-                        if k > 100:
-                            print(f"Доля белого больше у {name}!!!")
-                            break
+                    transformed_image = trans_until(
+                        image, name, threshold, limit, transform
+                    )
                 else:
                     transformed_image = self.transform(image)
 
