@@ -15,19 +15,20 @@ def open_image(image):
     img = ImageOps.exif_transpose(img)
     return img
 
+
 def graph2(x, y1, y2, title="", ylog=True, ylabel=""):
 
     plt.title(title, fontsize=13)
 
-    plt.plot(x, y1, color='g', label = "Train")
-    plt.plot(x, y2, color='m', label = "Val")
+    plt.plot(x, y1, color="g", label="Train")
+    plt.plot(x, y2, color="m", label="Val")
 
     plt.grid(True)
-    plt.ylabel(ylabel,  fontsize=10)
-    plt.xlabel("Номер эпохи",  fontsize=10)
+    plt.ylabel(ylabel, fontsize=10)
+    plt.xlabel("Номер эпохи", fontsize=10)
 
     if ylog:
-        plt.yscale('log')
+        plt.yscale("log")
 
     plt.legend(fontsize=10)
 

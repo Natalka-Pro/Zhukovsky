@@ -37,6 +37,7 @@ class My_Dataset(Dataset):
                 limit = 100
             dol = 1
             min_dol = 1
+            min_pic = None
             k = 0
             while dol >= threshold:
                 transformed_image = transform(image)
@@ -44,11 +45,16 @@ class My_Dataset(Dataset):
                 x, col = np.unique(transformed_image.max(dim=0)[0], return_counts=True)
                 ones = col[np.where(x == 1)[0]][0]  # белый
                 dol = ones / col.sum()  # доля белого
-                min_dol = min(min_dol, dol)
+                if dol < min_dol:
+                    min_dol, min_pic = dol, transformed_image
                 k += 1
                 if k > limit:
-                    print(f"Доля белого у {name} больше {threshold} ({min_dol})!!!")
+                    print(
+                        f"Доля белого у {name:30} больше {threshold} ({round(min_dol, 6)}) !!!"
+                    )
                     break
+
+            return min_pic
 
         if self.deterministic:
             seed_everything(seed)
