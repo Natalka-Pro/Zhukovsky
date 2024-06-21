@@ -130,7 +130,7 @@ def load_best_model(CONF, model, train_dataset, test_dataset, kind):
     log += f"train/val: loss {{:6.5f}}/{{:6.5f}}, acc:{{:7.3f}}%/{{:7.3f}}%"
 
     logs = load_logs(conf.path_log)
-    idx = np.array(logs["val_loss"]).argmax()
+    idx = np.array(logs["val_accuracy"]).argmax()
     best_epoch = logs["epoch"][idx]
 
     params = (

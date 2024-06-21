@@ -13,7 +13,7 @@ loader:
     batch_size: 64
 
 siamese:
-    n_epochs: 50
+    n_epochs: 30
     learning_rate: 3e-4
     margin: 9
     path_model: siamese
