@@ -8,6 +8,9 @@ https://github.com/dali92002/DocEnTR
 
 https://replicate.com/cjwbw/docentr
 
+dhSegment - line segmentation
+https://colab.research.google.com/drive/17k4FlJlwxVht7QhT9GKmitQni_e9evce#scrollTo=W-CxDN0b_5xz
+
 Сиамская сеть:
 https://docs.exponenta.ru/deeplearning/ug/train-a-siamese-network-to-compare-images.html
 https://habr.com/ru/articles/794750/

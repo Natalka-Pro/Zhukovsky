@@ -148,9 +148,13 @@ def show_result(
     greater=True,
     col=None,
     sort=False,
+    norm=None
 ):
 
     X, y_true, y_pred, y_prob = get_predictions(model, dataset, batch_size, device)
+
+    if norm:
+        y_prob = norm.transform(y_prob)
 
     if sort:
         if greater:
