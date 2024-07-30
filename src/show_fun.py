@@ -148,7 +148,7 @@ def show_result(
     greater=True,
     col=None,
     sort=False,
-    norm=None
+    norm=None,
 ):
 
     X, y_true, y_pred, y_prob = get_predictions(model, dataset, batch_size, device)

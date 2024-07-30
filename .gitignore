@@ -1,9 +1,12 @@
 images
 data
+yushkova
+yushkova (copy)
+yushdata
+classes
+old_txt
 *.zip
 .ipynb_checkpoints
 Untitled Document*
 bin
 __pycache__
-yushkova
-

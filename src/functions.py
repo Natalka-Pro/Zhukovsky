@@ -13,6 +13,15 @@ import torch.nn as nn
 from sklearn.metrics import confusion_matrix as conf_matrix
 
 
+def make_dir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+
+def path_join(*l):
+    return os.path.join(*l)
+
+
 def dir_paths(dir):
     paths = []
     for p in sorted(os.listdir(dir)):
