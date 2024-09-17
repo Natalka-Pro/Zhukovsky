@@ -159,3 +159,71 @@ class Pipeline(nn.Module):
         x = self.model(x.to(self.CONF.device))
         x = self.cl(x)
         return x
+
+
+# class My_Dataset(Dataset):
+#     def __init__(
+#         self,
+#         dataset,
+#         augmentation,
+#         transform,
+#         threshold=False,
+#         seed=42,
+#         deterministic=True,
+#         limit=None,
+#     ):
+#         self.augmentation = augmentation
+#         self.transform = transform
+#         self.deterministic = deterministic
+
+#         self.real_len = len(dataset)
+#         self.required_len = self.augmentation * self.real_len
+#         self.idx_to_class = {value:key for key, value in dataset.class_to_idx.items()}
+
+#         def trans_until(image, name, threshold, limit, transform):
+#             if not limit:
+#                 limit = 100
+#             dol = 1
+#             min_dol = 1
+#             min_pic = None
+#             k = 0
+#             while dol >= threshold:
+#                 transformed_image = transform(image)
+
+#                 x, col = np.unique(transformed_image.max(dim=0)[0],
+#                                    return_counts=True)
+#                 ones = col[np.where(x == 1)[0]][0]  # белый
+#                 dol = ones / col.sum()  # доля белого
+#                 if dol < min_dol:
+#                     min_dol, min_pic = dol, transformed_image
+#                 k += 1
+#                 if k > limit:
+#                     print(
+#                         f"Доля белого у {self.idx_to_class[name]} больше {threshold} ({round(min_dol, 6)}) !!!"
+#                     )
+#                     break
+
+#             return min_pic
+
+#         seed_everything(seed)
+#         self.X = []
+
+#         i = 0
+#         while len(self.X) < self.required_len:
+#             image, cl = dataset[i % self.real_len]
+#             i += 1
+
+#             transformed_image = trans_until(
+#                 image, cl, threshold, limit, transform
+#                 )
+
+#             self.X.append((transformed_image, cl))
+
+#     def __len__(self):
+#         return self.required_len
+
+#     def __getitem__(self, idx):
+#         if idx < len(self):
+#             return self.X[idx]
+#         else:
+#             raise IndexError
