@@ -30,9 +30,9 @@ def dir_paths(dir):
     return paths
 
 
-def file_name(path):
+def path_split(path):
     p = re.split(r"/", path)
-    return p[-1]
+    return p
 
 
 def seed_everything(seed: int):
